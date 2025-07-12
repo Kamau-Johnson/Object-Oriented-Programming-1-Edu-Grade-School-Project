@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduGrade Teacher Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='teacher_dashboard.css') }}" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  
+  <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+  
+  <div class="message-box" id="messageBox"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <i class="logo-icon fas fa-graduation-cap"></i>
+          <div class="logo-text"><h1>EDUGRADE +</h1><p>Track. Grade. Grow.</p></div>
+        </div>
+      </div>
+      <div class="sidebar-content">
+        <div class="nav-items">
+          <div class="nav-item active" onclick="showSection('dashboard')" data-section="dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
+          <div class="management-section"><div class="management-label">Management</div></div>
+          <div class="nav-item" onclick="openManageStudentsModal()" data-section="students"><i class="fas fa-users"></i><span>Students</span></div>
+          <div class="nav-item" onclick="showSection('marks')" data-section="marks"><i class="fas fa-book-open-reader"></i><span>Marks</span></div>
+          <div class="nav-item" onclick="showSection('reports')" data-section="reports"><i class="fas fa-chart-bar"></i><span>Reports</span></div>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <div class="user-info"><i class="fas fa-user"></i><span>User: {{ teacher_name }}</span></div>
+        <div class="logout-link"><a href="javascript:void(0);" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="content-wrapper">
+        <div id="dashboard" class="content-section active">
+          <div class="welcome-card">
+            <div class="welcome-content"><h1>Welcome, {{ teacher_name }}!</h1><p>Track, Grade, and Foster Student Growth.</p></div>
+          </div>
+          <div class="info-cards">
+            <div class="info-card">
+              <h3>TOTAL STUDENTS</h3>
+              <div class="number-box" id="totalStudentsCount">{{ total_students }}</div>
+              <p>Students in the system</p>
+            </div>
+            <div class="info-card clickable-card" onclick="openClassesOverviewModal()">
+              <h3>MY CLASSES</h3>
+              <div class="overview-icon"><i class="fas fa-school"></i></div>
+              <p>View your assigned classes</p>
+            </div>
+          </div>
+          <div class="actions">
+            <div class="action-card"><i class="fas fa-user-plus"></i><h2>Add New Student</h2><p>Register a new student</p><button class="get-started-btn" onclick="openAddStudentModal()">Add</button></div>
+            <div class="action-card"><i class="fas fa-book-open"></i><h2>Enter Marks</h2><p>Input grades for assignments</p><button class="get-started-btn" onclick="showSection('marks')">Start</button></div>
+            <div class="action-card"><i class="fas fa-eye"></i><h2>View All Reports</h2><p>See a list of all student reports</p><button class="get-started-btn" onclick="openTeacherReportsListModal()">View</button></div>
+          </div>
+        </div>
+        
+        <div id="marks" class="content-section">
+          <div class="data-management-section">
+            <div class="modal-header"><h2><i class="fas fa-book-open-reader"></i> Student Marks Management</h2></div>
+            <div class="table-controls">
+                <div class="form-group" style="min-width: 200px;">
+                    <label for="termSelector" style="font-weight: bold; margin-right: 10px;">Select Term:</label>
+                    <select id="termSelector" class="search-input"><option value="Term 1" selected>Term 1</option><option value="Term 2">Term 2</option><option value="Term 3">Term 3</option></select>
+                </div>
+                <div class="search-container"><input type="text" id="marksSearch" placeholder="Search students in this term..." class="search-input"><i class="fas fa-search search-icon"></i></div>
+                <button class="btn-add-new" onclick="fetchAndRenderMarksTable()"><i class="fas fa-sync-alt"></i> Refresh List</button>
+            </div>
+            <div class="table-container">
+                <table class="table">
+                    <thead><tr><th>Student Name</th><th>Admission No.</th><th>Grade</th><th>Overall Avg (%)</th><th>Overall Grade</th><th>Remark</th><th>Last Updated</th><th>Actions</th></tr></thead>
+                    <tbody id="marksTableBody"></tbody>
+                </table>
+            </div>
+          </div>
+        </div>
+        
+        <div id="reports" class="content-section">
+          <div class="data-management-section">
+              <div class="modal-header"><h2><i class="fas fa-chart-bar"></i> Student Report Generation</h2></div>
+              <div class="report-controls">
+                  <div class="form-group"><label for="reportTermSelector">Select Term:</label><select id="reportTermSelector" class="search-input"><option value="Term 1" selected>Term 1</option><option value="Term 2">Term 2</option><option value="Term 3">Term 3</option></select></div>
+                  <div class="form-group"><label for="reportStudentSelector">Select Student:</label><select id="reportStudentSelector" class="search-input"><option value="">-- Select a student --</option></select></div>
+                  <div class="report-action-buttons">
+                    <button id="generateReportBtn" class="btn-submit" disabled><i class="fas fa-cogs"></i> Generate Report</button>
+                    <button id="downloadPdfBtn" class="btn-pdf" style="display: none;"><i class="fas fa-file-pdf"></i> Download as PDF</button>
+                  </div>
+              </div>
+              <div id="reportCardContainer" class="report-card-container">
+                  <div class="placeholder-text"><i class="fas fa-file-alt"></i><p>Please select a term and a student to generate a report.</p></div>
+              </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="classesOverviewModal" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header"><h2><i class="fas fa-school"></i> My Assigned Classes</h2><button class="close" onclick="closeModal('classesOverviewModal')">×</button></div>
+      <div class="modal-body"><div class="table-controls"><div class="search-container"><input type="text" id="classSearch" placeholder="Search my classes..." class="search-input"><i class="fas fa-search search-icon"></i></div></div><div class="table-container"><table class="table"><thead><tr><th>Class Name</th><th>Grade Level</th><th>My Subject</th><th>Student Count</th></tr></thead><tbody id="classesOverviewTableBody"></tbody></table></div></div>
+    </div>
+  </div>
+  <div class="modal" id="manageStudentsModal">
+    <div class="modal-content" style="max-width: 1100px;">
+        <div class="modal-header"><h2><i class="fas fa-users"></i> Manage My Students</h2><button class="close" onclick="closeModal('manageStudentsModal')">×</button></div>
+        <div class="modal-body"><div class="table-controls"><div class="search-container"><input type="text" id="myStudentSearch" placeholder="Search my students..." class="search-input"><i class="fas fa-search search-icon"></i></div><button class="btn-add-new" onclick="openAddStudentFromList()"><i class="fas fa-plus"></i> Add New Student</button></div><div class="table-container"><table class="table"><thead><tr><th>Full Name</th><th>Admission No.</th><th>Grade</th><th>Assigned Class</th><th>Actions</th></tr></thead><tbody id="myStudentsTableBody"></tbody></table></div></div>
+    </div>
+  </div>
+  <div class="modal" id="addStudentModal">
+      <div class="modal-content" style="max-width: 800px;">
+          <form class="modal-form" id="addStudentForm">
+            <div class="modal-header"><h2><i class="fas fa-user-graduate"></i> Add New Student</h2><button type="button" class="close" onclick="closeModal('addStudentModal')">×</button></div>
+            <div class="modal-body">
+                <div class="form-row"><div class="form-group"><label for="studentFullName">Full Name *</label><input type="text" id="studentFullName" name="fullName" required></div><div class="form-group"><label for="studentAdmissionNumber">Admission Number *</label><input type="text" id="studentAdmissionNumber" name="admissionNumber" required></div></div>
+                <div class="form-row"><div class="form-group"><label for="studentAge">Age *</label><input type="number" id="studentAge" name="age" min="5" max="25" required></div><div class="form-group"><label for="studentGrade">Grade *</label><select id="studentGrade" name="grade" required><option value="">Select Grade</option><option value="Grade 1 (Lower Primary)">G1</option><option value="Grade 2 (Lower Primary)">G2</option><option value="Grade 3 (Lower Primary)">G3</option><option value="Grade 4 (Upper Primary)">G4</option><option value="Grade 5 (Upper Primary)">G5</option><option value="Grade 6 (Upper Primary)">G6</option><option value="Grade 7 (JSS)">G7</option><option value="Grade 8 (JSS)">G8</option></select></div></div>
+                <div class="form-row"><div class="form-group"><label for="studentClass">Assign to My Class *</label><select id="studentClass" name="classId" required><option value="">Select from your classes</option></select></div><div class="form-group"><label for="studentPassword">Password *</label><input type="password" id="studentPassword" name="password" required></div></div>
+            </div>
+            <div class="form-actions"><button type="button" class="btn-cancel" onclick="closeModal('addStudentModal')">Cancel</button><button type="submit" class="btn-submit">Add Student</button></div>
+          </form>
+      </div>
+  </div>
+  <div id="marksEntryModal" class="modal">
+    <div class="modal-content" style="max-width: 1000px;">
+        <form id="marksEntryForm">
+            <input type="hidden" id="marksEntryStudentId" name="studentId">
+            <div class="modal-header"><h2 style="margin: 0;"><i class="fas fa-edit"></i> Enter Student Marks</h2><h3 id="marksEntryTermDisplay" style="margin: 0; color: #007bff;"></h3><button type="button" class="close" onclick="closeModal('marksEntryModal')">×</button></div>
+            <div class="modal-body"><div class="student-info"><h3><i class="fas fa-user-graduate"></i> Student Information</h3><div class="info-grid"><div class="info-item"><span class="info-label">Full Name</span><span class="info-value" id="studentName"></span></div><div class="info-item"><span class="info-label">Admission No.</span><span class="info-value" id="admissionNumber"></span></div><div class="info-item"><span class="info-label">Grade</span><span class="info-value" id="studentGradeDisplay"></span></div><div class="info-item"><span class="info-label">Class</span><span class="info-value" id="studentClassDisplay"></span></div></div></div><div class="subjects-container" id="subjectsContainer"></div><div class="overall-summary"><h3><i class="fas fa-chart-line"></i> Overall Performance</h3><div class="overall-stats"><div class="overall-stat"><div class="overall-stat-value total-value" id="overallTotal">0.0</div><div class="overall-stat-label">Total Marks</div></div><div class="overall-stat"><div class="overall-stat-value average-value" id="overallAverage">0.0</div><div class="overall-stat-label">Overall Avg (%)</div></div><div class="overall-stat"><div class="overall-stat-value grade-value" id="overallGrade">-</div><div class="overall-stat-label">Overall Grade</div></div><div class="overall-stat"><div class="overall-stat-value remark-value" id="overallRemark">-</div><div class="overall-stat-label">Remark</div></div></div></div></div>
+            <div class="form-actions"><button type="button" class="btn-cancel" onclick="closeModal('marksEntryModal')">Cancel</button><button type="submit" class="btn-submit" id="marksSubmitBtn"><i class="fas fa-save"></i> Save Marks</button></div>
+        </form>
+    </div>
+  </div>
+  <div class="modal" id="teacherReportsListModal">
+    <div class="modal-content" style="max-width: 1200px;">
+        <div class="modal-header"><h2><i class="fas fa-chart-bar"></i> All My Student Reports</h2><button class="close" onclick="closeModal('teacherReportsListModal')">×</button></div>
+        <div class="modal-body"><div class="table-controls"><div class="search-container"><input type="text" id="teacherReportSearch" placeholder="Search by student, term..." class="search-input"><i class="fas fa-search search-icon"></i></div></div><div class="table-container"><table class="table"><thead><tr><th>Student Name</th><th>Admission No.</th><th>Term</th><th>Overall Avg (%)</th><th>Overall Grade</th><th>Actions</th></tr></thead><tbody id="teacherReportsTableBody"></tbody></table></div></div>
+    </div>
+  </div>
+
+<script>
+    const sidebar = document.getElementById('sidebar');
+    const messageBox = document.getElementById('messageBox');
+    
+    function showMessageBox(message, type = 'success') {
+        messageBox.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${message}`;
+        messageBox.className = `message-box show ${type}`;
+        setTimeout(() => { messageBox.className = 'message-box'; }, 3000);
+    }
+    
+    function showSection(sectionId) {
+      document.querySelectorAll('.modal.show').forEach(m => closeModal(m.id));
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      const section = document.getElementById(sectionId);
+      if(section) section.classList.add('active');
+      document.querySelectorAll('.sidebar .nav-item').forEach(item => item.classList.remove('active'));
+      const navItem = document.querySelector(`.nav-item[data-section="${sectionId}"]`);
+      if(navItem) navItem.classList.add('active');
+
+      if (sectionId === 'marks') {
+          fetchAndRenderMarksTable();
+      }
+      if (sectionId === 'reports') {
+          initializeOnPageReportGenerator();
+      }
+      if (window.innerWidth <= 768 && sidebar.classList.contains('active')) toggleSidebar();
+    }
+
+    function toggleSidebar() { sidebar.classList.toggle('active'); }
+    function logout() { window.location.href = "{{ url_for('teacher_logout') }}"; }
+
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'block';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+    }
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => { 
+              modal.style.display = 'none';
+              if(modalId === 'addStudentModal') document.getElementById('addStudentForm').reset();
+              if(modalId === 'marksEntryModal') {
+                  document.getElementById('marksEntryForm').reset();
+                  document.getElementById('subjectsContainer').innerHTML = '';
+              }
+            }, 300);
+        }
+    }
+    window.onclick = e => { if (e.target.classList.contains('modal')) closeModal(e.target.id); }
+
+    async function updateDashboardCounts() {
+        try { const response = await fetch('/teacher/dashboard_data'); const data = await response.json(); if (data.success) { document.getElementById('totalStudentsCount').textContent = data.total_students; } } catch (error) { console.error('Failed to update dashboard counts:', error); }
+    }
+    async function openClassesOverviewModal() {
+        openModal('classesOverviewModal');
+        const tbody = document.getElementById('classesOverviewTableBody');
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>`;
+        try { const response = await fetch('/teacher/my_classes'); const data = await response.json(); tbody.innerHTML = ''; if (data.success && data.classes.length > 0) { data.classes.forEach(cls => { tbody.insertRow().innerHTML = `<td>${cls.name}</td><td>${cls.grade}</td><td>${cls.subject_taught}</td><td>${cls.student_count}</td>`; }); } else { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">No classes are assigned to you.</td></tr>'; } } catch (error) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red; padding:20px;">Could not load class data.</td></tr>`; }
+    }
+    document.getElementById('classSearch').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.getElementById('classesOverviewTableBody').getElementsByTagName('tr');
+        for (const row of rows) { row.style.display = row.textContent.toLowerCase().includes(searchTerm) ? '' : 'none'; }
+    });
+
+    async function openManageStudentsModal() {
+        document.querySelectorAll('.sidebar .nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelector('.nav-item[data-section="students"]').classList.add('active');
+        openModal('manageStudentsModal');
+        await fetchAndRenderMyStudents();
+    }
+    async function fetchAndRenderMyStudents() {
+        const tbody = document.getElementById('myStudentsTableBody');
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading students...</td></tr>`;
+        try { const response = await fetch('/teacher/get_my_students'); const result = await response.json(); tbody.innerHTML = ''; if (result.success && result.students.length > 0) { result.students.forEach(s => { const row = tbody.insertRow(); row.innerHTML = `<td>${s.full_name}</td><td>${s.admission_number}</td><td>${s.grade}</td><td>${s.class_name || 'N/A'}</td><td><button class="btn-delete" onclick="deleteStudent(${s.id})">Delete</button></td>`; }); } else { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px;">You have no students in your assigned classes.</td></tr>`; } } catch (error) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">Could not load student data.</td></tr>`; }
+    }
+    async function deleteStudent(studentId) {
+        if (!confirm('Are you sure you want to delete this student? This action cannot be undone.')) return;
+        try { const response = await fetch(`/teacher/delete_student/${studentId}`, { method: 'DELETE' }); const result = await response.json(); showMessageBox(result.message, result.success ? 'success' : 'error'); if (result.success) { await fetchAndRenderMyStudents(); await updateDashboardCounts(); } } catch (error) { showMessageBox('An unexpected error occurred while deleting the student.', 'error'); }
+    }
+    document.getElementById('myStudentSearch').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.getElementById('myStudentsTableBody').getElementsByTagName('tr');
+        for (const row of rows) { row.style.display = row.textContent.toLowerCase().includes(searchTerm) ? '' : 'none'; }
+    });
+    async function openAddStudentFromList() { closeModal('manageStudentsModal'); setTimeout(openAddStudentModal, 350); }
+    async function populateClassDropdownForTeacher() {
+        const classSelect = document.getElementById('studentClass');
+        classSelect.innerHTML = '<option value="">Loading classes...</option>';
+        try { const response = await fetch('/teacher/my_classes'); const data = await response.json(); classSelect.innerHTML = '<option value="">Select from your classes</option>'; if (data.success && data.classes.length > 0) { data.classes.forEach(cls => { const option = document.createElement('option'); option.value = cls.id; option.textContent = `${cls.name} (${cls.grade})`; classSelect.appendChild(option); }); } else { classSelect.innerHTML = '<option value="">You have no classes assigned</option>'; } } catch(error) { classSelect.innerHTML = '<option value="">Error loading classes</option>'; }
+    }
+    async function openAddStudentModal() { openModal('addStudentModal'); await populateClassDropdownForTeacher(); }
+    document.getElementById('addStudentForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = e.target; const submitButton = form.querySelector('.btn-submit'); submitButton.disabled = true; submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...'; const formData = new URLSearchParams(new FormData(form)).toString();
+        try { const response = await fetch('/teacher/add_student', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData }); const result = await response.json(); showMessageBox(result.message, result.success ? 'success' : 'error'); if(result.success) { closeModal('addStudentModal'); await updateDashboardCounts(); } } catch (error) { showMessageBox('An unexpected error occurred.', 'error'); } finally { submitButton.disabled = false; submitButton.innerHTML = 'Add Student'; }
+    });
+
+    const subjects = [{id:'mathematics',name:'Mathematics',icon:'fa-calculator'},{id:'english',name:'English',icon:'fa-book'},{id:'kiswahili',name:'Kiswahili',icon:'fa-language'},{id:'science',name:'Science',icon:'fa-flask'},{id:'social_studies',name:'Social Studies',icon:'fa-globe-africa'}];
+    const assessmentTypes = [{id:'assignment1',name:'Assignment 1',icon:'fa-pencil-alt',maxScore:10},{id:'cat1',name:'CAT 1',icon:'fa-clipboard-check',maxScore:15},{id:'cat2',name:'CAT 2',icon:'fa-clipboard-check',maxScore:15},{id:'final_exam',name:'Final Exam',icon:'fa-graduation-cap',maxScore:100}];
+    document.getElementById('termSelector').addEventListener('change', fetchAndRenderMarksTable);
+    document.getElementById('marksSearch').addEventListener('input', function() { const searchTerm = this.value.toLowerCase(); const rows = document.getElementById('marksTableBody').getElementsByTagName('tr'); for (const row of rows) { row.style.display = row.textContent.toLowerCase().includes(searchTerm) ? '' : 'none'; } });
+    async function fetchAndRenderMarksTable() {
+        const tbody = document.getElementById('marksTableBody'); const selectedTerm = document.getElementById('termSelector').value; tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading students for ${selectedTerm}...</td></tr>`;
+        try { const response = await fetch(`/teacher/students_for_marks?term=${encodeURIComponent(selectedTerm)}`); const result = await response.json(); tbody.innerHTML = ''; if (result.success && result.students.length > 0) { result.students.forEach(s => { const row = tbody.insertRow(); const actionButton = `<button class="btn-edit" onclick="openMarksEntryForStudent(${s.id})"><i class="fas fa-edit"></i> Enter Marks</button>`; row.innerHTML = `<td>${s.full_name}</td><td>${s.admission_number}</td><td>${s.grade}</td><td><b>${s.overall_average || 'N/A'}</b></td><td><span class="grade-pill grade-${(s.overall_grade || 'na').toLowerCase()}">${s.overall_grade || 'N/A'}</span></td><td>${s.overall_remark || 'N/A'}</td><td>${s.updated_at ? new Date(s.updated_at).toLocaleString() : 'Never'}</td><td>${actionButton}</td>`; }); } else { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;">No students found in your classes for this term.</td></tr>`; } } catch (error) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:red; padding:20px;">Could not load student data.</td></tr>`; }
+    }
+    async function openMarksEntryForStudent(studentId) {
+        document.getElementById('marksEntryForm').reset(); document.getElementById('marksEntryStudentId').value = studentId; generateSubjectCards(); openModal('marksEntryModal');
+        const selectedTerm = document.getElementById('termSelector').value; document.getElementById('marksEntryTermDisplay').textContent = selectedTerm; document.getElementById('studentName').textContent = 'Loading...';
+        try { const response = await fetch(`/teacher/student_marks/${studentId}?term=${encodeURIComponent(selectedTerm)}`); const result = await response.json(); if (!result.success) { showMessageBox(result.message, 'error'); closeModal('marksEntryModal'); return; }
+            const student = result.student; document.getElementById('studentName').textContent = student.full_name; document.getElementById('admissionNumber').textContent = student.admission_number; document.getElementById('studentGradeDisplay').textContent = student.grade; document.getElementById('studentClassDisplay').textContent = student.class_name || 'N/A';
+            if (student.marks_data) { subjects.forEach(subject => { assessmentTypes.forEach(assessment => { const input = document.getElementById(`${subject.id}_${assessment.id}`); if (input && student.marks_data[subject.id] && student.marks_data[subject.id].assessments[assessment.id] !== null) { input.value = student.marks_data[subject.id].assessments[assessment.id]; } }); }); }
+            calculateAllSummaries();
+        } catch(error) { showMessageBox('Failed to load student marks data. Please try again.', 'error'); closeModal('marksEntryModal'); }
+    }
+    function getGrade(average) { if (average === null || isNaN(average)) return { grade: '-', remark: '-' }; if (average >= 80) return { grade: 'A', remark: 'Exceeding Expectations' }; if (average >= 60) return { grade: 'B', remark: 'Meeting Expectations' }; if (average >= 40) return { grade: 'C', remark: 'Approaching Expectations' }; if (average >= 20) return { grade: 'D', remark: 'Below Expectations' }; return { grade: 'E', remark: 'Needs Intervention' }; }
+    function generateSubjectCards() {
+        const container = document.getElementById('subjectsContainer'); container.innerHTML = '';
+        subjects.forEach(subject => { const subjectCard = document.createElement('div'); subjectCard.className = 'subject-card'; subjectCard.innerHTML = `<div class="subject-header"><div class="subject-name"><i class="fas ${subject.icon}"></i> ${subject.name}</div><div class="subject-summary"><div class="summary-item"><span class="summary-label">Total</span><span class="summary-value total-value" id="${subject.id}_total">0</span></div><div class="summary-item"><span class="summary-label">Average(%)</span><span class="summary-value average-value" id="${subject.id}_average">0.0</span></div><div class="summary-item"><span class="summary-label">Grade</span><span class="summary-value grade-value" id="${subject.id}_grade">-</span></div></div></div><div class="marks-grid">${assessmentTypes.map(assessment => `<div class="form-group-marks"><label for="${subject.id}_${assessment.id}"><i class="fas ${assessment.icon}"></i> ${assessment.name}</label><input type="number" id="${subject.id}_${assessment.id}" name="${subject.id}_${assessment.id}" min="0" max="${assessment.maxScore}" step="0.1" placeholder="0-${assessment.maxScore}" oninput="validateAndCalculate('${subject.id}', '${assessment.id}')"><span class="error-message" id="${subject.id}_${assessment.id}_error"></span></div>`).join('')}</div>`; container.appendChild(subjectCard); });
+    }
+    function validateAndCalculate(subjectId, assessmentId) {
+        const assessment = assessmentTypes.find(a => a.id === assessmentId); if (!assessment) return; const input = document.getElementById(`${subjectId}_${assessmentId}`); const errorSpan = document.getElementById(`${subjectId}_${assessmentId}_error`); const value = parseFloat(input.value); input.classList.remove('error'); errorSpan.textContent = '';
+        if (input.value !== '' && (isNaN(value) || value < 0 || value > assessment.maxScore)) { input.classList.add('error'); errorSpan.textContent = `0-${assessment.maxScore}`; document.getElementById(`${subjectId}_total`).textContent = 'ERR'; document.getElementById(`${subjectId}_average`).textContent = 'ERR'; document.getElementById(`${subjectId}_grade`).textContent = '-'; } else { calculateSubjectSummary(subjectId); } calculateOverallSummary();
+    }
+    function calculateSubjectSummary(subjectId) {
+        let rawTotal = 0; let percentageSum = 0; let count = 0;
+        assessmentTypes.forEach(assessment => { const input = document.getElementById(`${subjectId}_${assessment.id}`); if (input.value !== '' && !input.classList.contains('error')) { const score = parseFloat(input.value); rawTotal += score; percentageSum += (score / assessment.maxScore) * 100; count++; } });
+        const averagePercent = count > 0 ? percentageSum / count : 0; const gradeInfo = getGrade(averagePercent);
+        document.getElementById(`${subjectId}_total`).textContent = rawTotal.toFixed(1); document.getElementById(`${subjectId}_average`).textContent = averagePercent.toFixed(1); document.getElementById(`${subjectId}_grade`).textContent = gradeInfo.grade;
+    }
+    function calculateOverallSummary() {
+        let grandTotalRawMarks = 0; let grandTotalPercentageSum = 0; let totalAssessmentsCount = 0;
+        subjects.forEach(subject => { assessmentTypes.forEach(assessment => { const input = document.getElementById(`${subject.id}_${assessment.id}`); if (input && input.value !== '' && !input.classList.contains('error')) { const score = parseFloat(input.value); grandTotalRawMarks += score; grandTotalPercentageSum += (score / assessment.maxScore) * 100; totalAssessmentsCount++; } }); });
+        const overallAveragePercent = totalAssessmentsCount > 0 ? grandTotalPercentageSum / totalAssessmentsCount : 0; const overallGradeInfo = getGrade(overallAveragePercent);
+        document.getElementById('overallTotal').textContent = grandTotalRawMarks.toFixed(1); document.getElementById('overallAverage').textContent = overallAveragePercent.toFixed(1); document.getElementById('overallGrade').textContent = overallGradeInfo.grade; document.getElementById('overallRemark').textContent = overallGradeInfo.remark;
+    }
+    function calculateAllSummaries() { subjects.forEach(subject => calculateSubjectSummary(subject.id)); calculateOverallSummary(); }
+    document.getElementById('marksEntryForm').addEventListener('submit', async function(e) {
+        e.preventDefault(); if(document.querySelector('.form-group-marks .error')) { showMessageBox('Please correct the errors in the marks before saving.', 'error'); return; }
+        const submitButton = document.getElementById('marksSubmitBtn'); submitButton.disabled = true; submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; const studentId = document.getElementById('marksEntryStudentId').value; const selectedTerm = document.getElementById('termSelector').value;
+        const marksPayload = { term: selectedTerm, subjects: {}, overall: { total: document.getElementById('overallTotal').textContent, average: document.getElementById('overallAverage').textContent, grade: document.getElementById('overallGrade').textContent, remark: document.getElementById('overallRemark').textContent } };
+        subjects.forEach(subject => { marksPayload.subjects[subject.id] = { name: subject.name, assessments: {}, total: document.getElementById(`${subject.id}_total`).textContent, average: document.getElementById(`${subject.id}_average`).textContent, grade: document.getElementById(`${subject.id}_grade`).textContent }; assessmentTypes.forEach(assessment => { const input = document.getElementById(`${subject.id}_${assessment.id}`); marksPayload.subjects[subject.id].assessments[assessment.id] = input.value === '' ? null : parseFloat(input.value); }); });
+        try { const response = await fetch(`/teacher/save_marks/${studentId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(marksPayload) }); const result = await response.json(); showMessageBox(result.message, result.success ? 'success' : 'error'); if (result.success) { closeModal('marksEntryModal'); await fetchAndRenderMarksTable(); } } catch(error) { showMessageBox('An unexpected error occurred while saving.', 'error'); } finally { submitButton.disabled = false; submitButton.innerHTML = '<i class="fas fa-save"></i> Save Marks'; }
+    });
+
+    function initializeOnPageReportGenerator() {
+        const reportStudentSelector = document.getElementById('reportStudentSelector');
+        const generateReportBtn = document.getElementById('generateReportBtn');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        const reportCardContainer = document.getElementById('reportCardContainer');
+        async function populateStudentsForGenerator() {
+            reportStudentSelector.innerHTML = '<option value="">Loading students...</option>';
+            try { const response = await fetch('/teacher/get_my_students'); const result = await response.json(); if (result.success && result.students.length > 0) { reportStudentSelector.innerHTML = '<option value="">-- Select a student --</option>'; result.students.forEach(s => { const option = document.createElement('option'); option.value = s.id; option.textContent = `${s.full_name} (${s.admission_number})`; reportStudentSelector.appendChild(option); }); } else { reportStudentSelector.innerHTML = '<option value="">No students found</option>'; } } catch (error) { reportStudentSelector.innerHTML = '<option value="">Error loading students</option>'; }
+        }
+        reportStudentSelector.addEventListener('change', () => { generateReportBtn.disabled = !reportStudentSelector.value; downloadPdfBtn.style.display = 'none'; reportCardContainer.innerHTML = `<div class="placeholder-text"><i class="fas fa-file-alt"></i><p>Please select a term and a student to generate a report.</p></div>`; });
+        generateReportBtn.addEventListener('click', async () => {
+            const studentId = reportStudentSelector.value; const term = document.getElementById('reportTermSelector').value; if (!studentId) { return; }
+            generateReportBtn.disabled = true; generateReportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...'; reportCardContainer.innerHTML = `<div class="placeholder-text"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Fetching report data...</p></div>`;
+            try { const response = await fetch(`/teacher/generate_report_data/${studentId}?term=${encodeURIComponent(term)}`); const result = await response.json(); if (result.success) { renderOnPageReportCard(result.data); downloadPdfBtn.style.display = 'inline-block'; } else { reportCardContainer.innerHTML = `<div class="placeholder-text error"><i class="fas fa-exclamation-triangle"></i><p>${result.message}</p></div>`; downloadPdfBtn.style.display = 'none'; } } catch (error) { reportCardContainer.innerHTML = `<div class="placeholder-text error"><i class="fas fa-exclamation-triangle"></i><p>An unexpected error occurred.</p></div>`; } finally { generateReportBtn.disabled = false; generateReportBtn.innerHTML = '<i class="fas fa-cogs"></i> Generate Report'; }
+        });
+        function renderOnPageReportCard(data) { let subjectRows = ''; for (const subjectKey in data.marks_details) { subjectRows += `<tr><td>${data.marks_details[subjectKey].name}</td><td>${data.marks_details[subjectKey].assessments.assignment1||'-'}</td><td>${data.marks_details[subjectKey].assessments.cat1||'-'}</td><td>${data.marks_details[subjectKey].assessments.cat2||'-'}</td><td>${data.marks_details[subjectKey].assessments.final_exam||'-'}</td><td><b>${data.marks_details[subjectKey].total}</b></td><td>${data.marks_details[subjectKey].average}%</td><td>${data.marks_details[subjectKey].grade}</td></tr>`; } reportCardContainer.innerHTML = `<div id="printableReport" class="report-card"><header class="report-header"><i class="fas fa-graduation-cap logo"></i><div><h1>EDUGRADE+ REPORT CARD</h1><p>End of ${data.term}, ${new Date().getFullYear()}</p></div></header><section class="student-details"><div class="detail-item"><strong>Student Name:</strong> ${data.full_name}</div><div class="detail-item"><strong>Admission No:</strong> ${data.admission_number}</div><div class="detail-item"><strong>Grade:</strong> ${data.grade}</div><div class="detail-item"><strong>Class:</strong> ${data.class_name}</div></section><section class="marks-table"><table><thead><tr><th>Subject</th><th>Asgn 1 (10)</th><th>CAT 1 (15)</th><th>CAT 2 (15)</th><th>Exam (100)</th><th>Total</th><th>Avg (%)</th><th>Grade</th></tr></thead><tbody>${subjectRows}</tbody></table></section><section class="summary-section"><h3>Overall Performance Summary</h3><div class="summary-grid"><div class="summary-box"><div class="value">${data.overall_average}%</div><div class="label">Overall Average</div></div><div class="summary-box"><div class="value grade-${(data.overall_grade||'na').toLowerCase()}">${data.overall_grade}</div><div class="label">Overall Grade</div></div><div class="summary-box remark"><div class="value">${data.overall_remark}</div><div class="label">Class Teacher's Remark</div></div></div></section><footer class="report-footer"><div class="signature"><p>_________________________</p><p><strong>Class Teacher:</strong> ${data.teacher_name}</p></div><div class="signature"><p>_________________________</p><p><strong>Principal's Signature</strong></p></div><div class="date-stamp"><p><strong>Date Issued:</strong> ${data.report_generated_on}</p><div class="stamp">SCHOOL STAMP</div></div></footer></div>`; }
+        downloadPdfBtn.addEventListener('click', () => { const reportElement = document.getElementById('printableReport'); const studentName = reportElement.querySelector('.student-details .detail-item:first-child').textContent.replace('Student Name:','').trim(); const term = document.getElementById('reportTermSelector').value; const opt = { margin: 0.5, filename: `Report_Card_${studentName.replace(/ /g, '_')}_${term}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }; html2pdf().set(opt).from(reportElement).save(); });
+        populateStudentsForGenerator();
+    }
+
+    async function openTeacherReportsListModal() {
+        await fetchAndRenderTeacherReports();
+        openModal('teacherReportsListModal');
+    }
+    async function fetchAndRenderTeacherReports() {
+        const tbody = document.getElementById('teacherReportsTableBody');
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading reports...</td></tr>`;
+        try {
+            const response = await fetch('/teacher/my_reports');
+            const result = await response.json();
+            tbody.innerHTML = '';
+            if (result.success && result.reports.length > 0) {
+                result.reports.forEach(r => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `<td>${r.student_name}</td><td>${r.admission_number}</td><td>${r.term}</td><td>${r.overall_average || 'N/A'}%</td><td><span class="grade-pill grade-${(r.overall_grade || 'na').toLowerCase()}">${r.overall_grade || 'N/A'}</span></td><td><button class="btn-pdf" onclick="downloadTeacherReportFromList(${r.mark_id}, this)"><i class="fas fa-file-pdf"></i> Download</button></td>`;
+                });
+            } else { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px;">No reports have been saved for your students yet.</td></tr>`; }
+        } catch (error) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: red;">Failed to load reports.</td></tr>`; }
+    }
+    document.getElementById('teacherReportSearch').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.getElementById('teacherReportsTableBody').getElementsByTagName('tr');
+        for (const row of rows) { row.style.display = row.textContent.toLowerCase().includes(searchTerm) ? '' : 'none'; }
+    });
+    function renderReportCardForDownload(data) { let subjectRows = ''; for (const subjectKey in data.marks_details) { subjectRows += `<tr><td>${data.marks_details[subjectKey].name ?? 'N/A'}</td><td>${data.marks_details[subjectKey].assessments.assignment1 ?? '-'}</td><td>${data.marks_details[subjectKey].assessments.cat1 ?? '-'}</td><td>${data.marks_details[subjectKey].assessments.cat2 ?? '-'}</td><td>${data.marks_details[subjectKey].assessments.final_exam ?? '-'}</td><td><b>${data.marks_details[subjectKey].total ?? '-'}</b></td><td>${data.marks_details[subjectKey].average ?? '-'}%</td><td>${data.marks_details[subjectKey].grade ?? '-'}</td></tr>`; } return `<div class="report-card-printable"><style>.report-card-printable{background:#fff;border:1px solid #ccc;padding:25px;max-width:800px;margin:0 auto;font-family:'Times New Roman',Times,serif;color:#000}.rcp-header{display:flex;align-items:center;justify-content:center;text-align:center;border-bottom:2px solid #000;padding-bottom:15px;margin-bottom:20px}.rcp-header .logo{font-size:50px;margin-right:20px}.rcp-header h1{margin:0;font-size:24px;font-weight:700}.rcp-header p{margin:0;font-size:16px}.rcp-details{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;font-size:14px}.rcp-details .item{padding:5px;border:1px solid #eee}.rcp-marks table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px}.rcp-marks th,.rcp-marks td{border:1px solid #000;padding:8px;text-align:center}.rcp-marks th{background-color:#f2f2f2;font-weight:700}.rcp-summary{margin-top:20px;border-top:2px solid #000;padding-top:15px}.rcp-summary h3{text-align:center;margin-bottom:15px;font-weight:700}.rcp-summary-grid{display:grid;grid-template-columns:1fr 1fr 2fr;gap:15px}.rcp-summary .box{border:1px solid #000;padding:10px;text-align:center}.rcp-summary .box .value{font-size:18px;font-weight:700;margin-bottom:5px}.rcp-summary .box .label{font-size:12px}.rcp-summary .box.remark .value{font-size:14px;font-style:italic;min-height:40px}.rcp-footer{margin-top:40px;padding-top:20px;border-top:1px solid #999;display:flex;justify-content:space-between;align-items:flex-end;font-size:12px}</style><header class="rcp-header"><div><h1>EDUGRADE+ REPORT CARD</h1><p>End of ${data.term}, ${new Date().getFullYear()}</p></div></header><section class="rcp-details"><div class="item"><strong>Student:</strong> ${data.full_name}</div><div class="item"><strong>Adm No:</strong> ${data.admission_number}</div><div class="item"><strong>Grade:</strong> ${data.grade}</div><div class="item"><strong>Class:</strong> ${data.class_name||"N/A"}</div></section><section class="rcp-marks"><table><thead><tr><th>Subject</th><th>Asgn 1</th><th>CAT 1</th><th>CAT 2</th><th>Exam</th><th>Total</th><th>Avg(%)</th><th>Grade</th></tr></thead><tbody>${subjectRows}</tbody></table></section><section class="rcp-summary"><h3>Overall Performance Summary</h3><div class="rcp-summary-grid"><div class="box"><div class="value">${data.overall_average}%</div><div class="label">Overall Average</div></div><div class="box"><div class="value">${data.overall_grade}</div><div class="label">Overall Grade</div></div><div class="box remark"><div class="value">${data.overall_remark}</div><div class="label">Teacher's Remark</div></div></div></section><footer class="rcp-footer"><div><p>_________________</p><p><strong>Teacher:</strong> ${data.teacher_name||"N/A"}</p></div><div><p>_________________</p><p><strong>Principal</strong></p></div><div><p><strong>Issued:</strong> ${data.report_generated_on}</p></div></footer></div>`; }
+    async function downloadTeacherReportFromList(markId, button) {
+        const originalHtml = button.innerHTML; button.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`; button.disabled = true;
+        try { const response = await fetch(`/teacher/get_report_data/${markId}`); if (!response.ok) throw new Error('Failed to fetch report data.'); const result = await response.json();
+            if (result.success) { const reportHTML = renderReportCardForDownload(result.data); const opt = { margin: 0.5, filename: `Report_Card_${result.data.full_name.replace(/ /g, '_')}_${result.data.term}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }; await html2pdf().set(opt).from(reportHTML).save(); } else { showMessageBox(result.message, 'error'); }
+        } catch (error) { showMessageBox('Error generating PDF.', 'error'); } 
+        finally { button.innerHTML = originalHtml; button.disabled = false; }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { 
+        showSection('dashboard');
+        updateDashboardCounts();
+    });
+</script>
+
+</body>
+</html> 

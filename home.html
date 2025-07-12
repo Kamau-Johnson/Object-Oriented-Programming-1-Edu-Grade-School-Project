@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EduGrade Login</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
+  <style>
+    .flash-messages {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+    .flash {
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    .flash.success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    .flash.error {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>EduGrade +</h1>
+    <p class="subtitle">Track. Grade. Grow.</p>
+    <h2>Student Login</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('student_login') }}" method="post" autocomplete="off">
+      <label for="admission_number">Admission Number</label>
+      <input type="text" id="admission_number" name="admission_number" required placeholder="Enter admission number" />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required placeholder="Enter password" />
+
+      <button type="submit">Login</button>
+      <button type="button" class="access-btn" onclick="teacherAccess()">Teacher's Access</button>
+      <button type="button" class="access-btn" onclick="adminAccess()">Admin's Access</button>
+    </form>
+  </div>
+
+  <script>
+    {% if login_redirect_url %}
+      const form = document.querySelector('form');
+      form.querySelectorAll('input').forEach(input => input.disabled = true);
+      form.querySelectorAll('button').forEach(button => button.disabled = true);
+      setTimeout(function() {
+        window.location.href = "{{ login_redirect_url }}";
+      }, 1500);
+    {% endif %}
+
+    function teacherAccess() {
+      const code = prompt("Enter Teacher Passcode:");
+      if (code === "123") {
+        window.location.href = "{{ url_for('teacher_login') }}";
+      } else if (code) {
+        alert("Invalid teacher code.");
+      }
+    }
+
+    function adminAccess() {
+      const code = prompt("Enter Admin Passcode:");
+      if (code === "0464") {
+        window.location.href = "{{ url_for('admin_login') }}";
+      } else if (code) {
+        alert("Invalid admin code.");
+      }
+    }
+  </script>
+</body>
+</html>

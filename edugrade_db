@@ -1,0 +1,261 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Jul 01, 2025 at 12:33 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `edugrade_db`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admins`
+--
+
+CREATE TABLE `admins` (
+  `id` int(11) NOT NULL,
+  `access_code` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `admins`
+--
+
+INSERT INTO `admins` (`id`, `access_code`, `password`, `created_at`) VALUES
+(1, '1', 'scrypt:32768:8:1$LQ4xafbX9SZq3qJj$9ba77ef2b81e78296382e151340b069d5545cffc12c27e1494c683bb85ee611234696196ce03d49b661f35a811bd9948538128eb2cf675f23f1d532f062fcffe', '2025-06-13 15:30:50');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `classes`
+--
+
+CREATE TABLE `classes` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `grade` varchar(100) NOT NULL,
+  `teacher_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `classes`
+--
+
+INSERT INTO `classes` (`id`, `name`, `grade`, `teacher_id`, `created_at`) VALUES
+(2, 'Green', 'Grade 1 (Lower Primary)', 10, '2025-06-21 23:01:45'),
+(3, 'Blue', 'Grade 2 (Lower Primary)', 11, '2025-06-21 23:03:11'),
+(4, 'Yellow', 'Grade 3 (Lower Primary)', 12, '2025-06-21 23:06:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `marks`
+--
+
+CREATE TABLE `marks` (
+  `id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `teacher_id` int(11) NOT NULL,
+  `term` varchar(50) NOT NULL,
+  `marks_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`marks_data`)),
+  `overall_average` decimal(5,2) DEFAULT NULL,
+  `overall_grade` varchar(5) DEFAULT NULL,
+  `overall_remark` varchar(255) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `marks`
+--
+
+INSERT INTO `marks` (`id`, `student_id`, `teacher_id`, `term`, `marks_data`, `overall_average`, `overall_grade`, `overall_remark`, `updated_at`) VALUES
+(1, 29, 10, 'Term 1', '{\"mathematics\": {\"name\": \"Mathematics\", \"assessments\": {\"assignment1\": 10, \"cat1\": 12, \"cat2\": 12, \"final_exam\": 70}, \"total\": \"104.0\", \"average\": \"82.5\", \"grade\": \"A\"}, \"english\": {\"name\": \"English\", \"assessments\": {\"assignment1\": 10, \"cat1\": 9, \"cat2\": 5, \"final_exam\": 76}, \"total\": \"100.0\", \"average\": \"67.3\", \"grade\": \"B\"}, \"kiswahili\": {\"name\": \"Kiswahili\", \"assessments\": {\"assignment1\": 8, \"cat1\": 8, \"cat2\": 7, \"final_exam\": 56}, \"total\": \"79.0\", \"average\": \"59.0\", \"grade\": \"C\"}, \"science\": {\"name\": \"Science\", \"assessments\": {\"assignment1\": 7, \"cat1\": 7, \"cat2\": 11, \"final_exam\": 67}, \"total\": \"92.0\", \"average\": \"64.3\", \"grade\": \"B\"}, \"social_studies\": {\"name\": \"Social Studies\", \"assessments\": {\"assignment1\": 9, \"cat1\": 9, \"cat2\": 13, \"final_exam\": 56}, \"total\": \"87.0\", \"average\": \"73.2\", \"grade\": \"B\"}}', 69.30, 'B', 'Meeting Expectations', '2025-06-30 22:08:27'),
+(2, 30, 10, 'Term 1', '{\"mathematics\": {\"name\": \"Mathematics\", \"assessments\": {\"assignment1\": null, \"cat1\": null, \"cat2\": null, \"final_exam\": null}, \"total\": \"0.0\", \"average\": \"0.0\", \"grade\": \"E\"}, \"english\": {\"name\": \"English\", \"assessments\": {\"assignment1\": null, \"cat1\": null, \"cat2\": null, \"final_exam\": null}, \"total\": \"0.0\", \"average\": \"0.0\", \"grade\": \"E\"}, \"kiswahili\": {\"name\": \"Kiswahili\", \"assessments\": {\"assignment1\": null, \"cat1\": null, \"cat2\": null, \"final_exam\": null}, \"total\": \"0.0\", \"average\": \"0.0\", \"grade\": \"E\"}, \"science\": {\"name\": \"Science\", \"assessments\": {\"assignment1\": null, \"cat1\": null, \"cat2\": null, \"final_exam\": null}, \"total\": \"0.0\", \"average\": \"0.0\", \"grade\": \"E\"}, \"social_studies\": {\"name\": \"Social Studies\", \"assessments\": {\"assignment1\": null, \"cat1\": null, \"cat2\": null, \"final_exam\": null}, \"total\": \"0.0\", \"average\": \"0.0\", \"grade\": \"E\"}}', 0.00, 'E', 'Needs Intervention', '2025-06-30 22:13:09');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `students`
+--
+
+CREATE TABLE `students` (
+  `id` int(11) NOT NULL,
+  `full_name` varchar(255) NOT NULL,
+  `admission_number` varchar(50) NOT NULL,
+  `age` int(11) NOT NULL,
+  `grade` varchar(100) NOT NULL,
+  `class_id` int(11) DEFAULT NULL,
+  `password` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `email` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `students`
+--
+
+INSERT INTO `students` (`id`, `full_name`, `admission_number`, `age`, `grade`, `class_id`, `password`, `created_at`, `email`) VALUES
+(15, 'Johnson Kamau', '1', 21, 'Grade 6 (Upper Primary)', NULL, 'scrypt:32768:8:1$tHl8Ioy4C4gr6JUD$1c613ffd0a0cc8320b6832574728e444a2a8ce1ba83c8332eb545f69c71898e58b4c3758c3be429c0ee7f8ddd8fad9e45093e67fb66467cb6df8f78eeb3ecddd', '2025-06-15 14:32:03', NULL),
+(17, 'Mary Otieno', '2', 8, 'Grade 2 (Lower Primary)', NULL, 'scrypt:32768:8:1$BWLLjQdeJqhHIaci$bdef52e0a77f07c0e7af2df632d11d38317b9f206c12550e928230536ecf2e1f6313afbe8d202d035bd04dcf28c70e71a61863223e57462a4e1a525a1e5d4589', '2025-06-15 14:33:10', NULL),
+(18, 'Sarah Atieno', '3', 11, 'Grade 7 (JSS)', NULL, 'scrypt:32768:8:1$24blFRWUalEuAnh9$cf739de89b96418c6962b4f1b71294efb9e02a9f064ea85edeb8c3f01ac3eae955d29c12c570f1f49cc94fc97bd2769bebf817ddac38d187787fa873b532d342', '2025-06-15 14:33:31', NULL),
+(19, 'Odhiambo Otieno', '4', 13, 'Grade 8 (JSS)', NULL, 'scrypt:32768:8:1$2ZNeAzaN0wEdwPXU$1ef20e91c1d59a7f89876819dee5ccb22c518b87591aa62403800959b0b04c1df2cbf24ac083687b8482f2c32c72cd52cfb4652e53ec44467f8508a6b13d0591', '2025-06-15 14:34:57', NULL),
+(20, 'Omondi Ochieng ', '5', 10, 'Grade 5 (Upper Primary)', NULL, 'scrypt:32768:8:1$RDBoWP1kRWZpiyD1$9d7f4ca6fbf1cab4495cebe0b8128da78d4d485084f2137206203005495ca2b5b9d1a3b0066f0ef7765fcfe74d0000ca3458296325b73d27f8cc227220f2a0f9', '2025-06-15 14:35:22', NULL),
+(21, 'Okello Onyango', '6', 12, 'Grade 8 (JSS)', NULL, 'scrypt:32768:8:1$v7SrFkCoF8baU4lV$3d93008e940dacbac00ab44a923f4a2896804e93bac5eb29631045ada2a7ae9f0cd9a521b7b8de7f453545e52688cd641d37cca0a1fe821768637ae892c71335', '2025-06-15 14:35:58', NULL),
+(22, 'Kamau Mwangi ', '7', 16, 'Grade 8 (JSS)', NULL, 'scrypt:32768:8:1$H8oIRKbEGiJHGxyz$87a9c0bbda5bab31de24ff38737113e3dae2d17ac0de7adafe05275ab2717b51262b741a9caa284c188aa3c81d8e7a5bfc1ade4d7d04121baedd9af37d67ba06', '2025-06-15 14:36:29', NULL),
+(23, 'Gitau Njau', '8', 14, 'Grade 6 (Upper Primary)', NULL, 'scrypt:32768:8:1$xp0brHyeyLaAtMBz$b54d117273710249230c694ac48a9602456ad915bd8e928d0b818871584f70aa19fe62bb9fd49a8c1345222e115f939ccf18fe2fc99701eaa57852b7075588b6', '2025-06-15 14:36:56', NULL),
+(24, 'Wambui Njeri', '9', 13, 'Grade 7 (JSS)', NULL, 'scrypt:32768:8:1$97OziNcxeDLkWJDQ$7f3895ce0bf9e983ebe1d3f92c3cbf1d13872320d9428acc8efa02b712fe3ef5196565254c0b6d3b576b5f44e4b70fcb0e0c19caa088b4d71ff3543a2e24f4cb', '2025-06-15 14:37:47', NULL),
+(25, 'Wangeci Njeri', '10', 10, 'Grade 6 (Upper Primary)', NULL, 'scrypt:32768:8:1$KCHuZHHL5FnUVAgU$2095dac52f5deaf6c9db3e88ff7de50157fd02d1aaaaabb7fc21cd72b38b9a5e3a9efea729ac9ed09f1527b92abd323b4834148bf055000e2b5943790e867fc6', '2025-06-15 14:38:19', NULL),
+(26, 'Johnson Kamau ', '1010223', 20, 'Grade 2 (Lower Primary)', NULL, 'scrypt:32768:8:1$DrJH2bb4QHxk90wP$7fd6acc8678fc792dd917ed99f608fbed21824d82b4c31b263f7081e19cd48eaed8dd6564091ba03011d226ac1b3a9bd6889f94489c4af5c34f8ad224e54a878', '2025-06-21 22:43:38', NULL),
+(27, 'Ahmed Simur', '12', 14, 'Grade 2 (Lower Primary)', NULL, 'scrypt:32768:8:1$E9iGyDEJYLPYhDHh$946c5855299992ba1bbaada6bdbff448d8ef1f9e2bf156ccf5d0995c96c15fbecf5594f6c4a0a3ae167142b6085ae46856c76acbecbd8f3040bfce1db718133e', '2025-06-21 22:51:53', NULL),
+(28, 'Sarah Makena', '13', 11, 'Grade 3 (Lower Primary)', 4, 'scrypt:32768:8:1$iTvrAGxZxymSKYxY$e608a61036f420ab0ed97dc9f33f3480969a5857c3af36891c4fc1496078fd8e8c33c4441c5b5664006c6d9919335c85b66a5b287ea8b3d8bf86f766f87520c7', '2025-06-21 23:07:36', NULL),
+(29, 'Henry Kipkoech', '14', 12, 'Grade 1 (Lower Primary)', 2, 'scrypt:32768:8:1$Mc0qGdJHjvXSVdSq$04c85b2515f95d571d73c91ed1a2c7b85478f1a09842dcb53178004a66c34eddb22d1eb11b38cde80f1ad457552517f1f4c7c39d64a9ca7a6cd55c4ed3f25817', '2025-06-21 23:25:30', NULL),
+(30, 'Johnson Kamau ', '15', 20, 'Grade 1 (Lower Primary)', 2, 'scrypt:32768:8:1$juxUVAkFAn445dzh$a5433725bb2a58e506a16336cd6b49cc42f9944e3fca27f4cf29605317b80c83d5629957be1d0d511a3e438e0c883b4dafa65e1d4ec069d96c6ee72affb9ae75', '2025-06-22 00:11:26', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `teachers`
+--
+
+CREATE TABLE `teachers` (
+  `id` int(11) NOT NULL,
+  `full_name` varchar(255) NOT NULL,
+  `phone_number` varchar(20) DEFAULT NULL,
+  `email` varchar(255) NOT NULL,
+  `subject` varchar(100) NOT NULL,
+  `access_code` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `teachers`
+--
+
+INSERT INTO `teachers` (`id`, `full_name`, `phone_number`, `email`, `subject`, `access_code`, `password`, `created_at`) VALUES
+(10, 'Mr Johnson Kamau', '0768280952', 'johnsonkamau542@gmail.com', 'Mathematics', '1', 'scrypt:32768:8:1$bLnKwUZVJwzCmjYQ$14e23b1e1f901b9a545d78273ba27c368b95ba03c90f50a79149427f7a893f263ad64deb60970d8ab154a2afed777bd2ea8a608e58769fd60b8e39d4bb1f35a1', '2025-06-15 14:32:30'),
+(11, 'Mumbi Wambui', '07287624567', 'mumbiwambui00@gmail.com', 'Integrated Science', '5555', 'scrypt:32768:8:1$Ny0G6zosoJKGiOcU$5a1ceba8060f3a42e586ac579aa013e88ec94a3964ca8f6e84ba907671ca553471e389362557bee55a5df8a105d73a113b49fbcb286b101a27038bcb347ac59c', '2025-06-15 14:39:35'),
+(12, 'Nduta Kagure', '0123458765', 'ndutakagure@gmail.com', 'Kiswahili', '9090', 'scrypt:32768:8:1$8v1R6acIT7JFBJps$36891ec397180a5d9edf7ed9018d0815050c7ccfac022aa7559fc7dd687d877763d7655b41eb7508f68e2f01d1f92eccd6fad987e632e2b44decb470b6590485', '2025-06-15 14:40:12'),
+(13, 'Ndung’u Thuo', '07785643213', 'ndung\'uthuo12@gmail.com', 'Social Studies', '8888', 'scrypt:32768:8:1$aCtUABECn9GH7DoD$9185025f59bcd079fffe76d07c9a6cc1b178238a33e68aa368d5f210d9d0f2b3a6b1212244fb0b08e0a3310eea021c6d5db465dbd0383d8d0af8e8b5a161e457', '2025-06-15 14:41:32'),
+(14, 'Githinji Mwaura', '0198764523', 'githinjimwaura@gmail.com', 'Mathematics', '7778', 'scrypt:32768:8:1$rKoZgW8puHovVR44$36384ec994f050ca19e08e0627f08489e571f3d1361ef0036895a50f13bad6e08a4d06c70c817711336002d7ef891b1eb5313544f91d5a161dbd2c00c5e68b4c', '2025-06-15 14:42:13'),
+(15, 'Waweru Kihara', '0725422386', 'wawerukihara@gmail.com', 'Integrated Science', '333', 'scrypt:32768:8:1$578A62SAeWI5NWt1$436dbbd1240254c21b1c15d189e38a006612c660302039bf2ebb73be447bbae052c86ca8d1d64fce65b062557ea8f69a0bc4c7df560382fdc1d96d4a7c1742a4', '2025-06-15 14:42:47'),
+(16, 'Aluoch Abong’o', '0768280955', 'aluochobong\'o@gmail.com', 'English', '4440', 'scrypt:32768:8:1$kUwRgVTFLkgMe2uF$1a3b19840273ec835ad563e59b4e3d5dfb90649e13c6f8556d05383d91a5b48b54cb688372486c37371e86fe6427d3d9e2183e2c2f407fafe8c65063ea1bcb93', '2025-06-15 14:43:29'),
+(17, 'Oduor Ochola ', '0768380952', 'oduorochola@gmail.com', 'Kiswahili', '774', 'scrypt:32768:8:1$inS2wQeYKsxyZ0fC$0d47fb9291830786420bdee13ee43bd2e5fdf3bee504b8ca794816bb11be8635f6acd671a498b8ad0f126da26af1b1a1fa16cb410903f87160360f47bb372f20', '2025-06-15 14:44:26'),
+(19, 'Owuor Otieno', '0728280952', 'owuorotieno@gmail.com', 'Social Studies', '9091', 'scrypt:32768:8:1$PNl1sZamcw5ub1sa$bc95cadf3d79542e133a078a66b8c5c4b27d828cc457f3e91bb9b7df63f29ee32d5bdc205704242a0a39702ee8d3983ccb0dd5f186de755c520a891e6cc0048b', '2025-06-15 14:45:19'),
+(20, 'Opiyo Ouma ', '0718280976', 'opiyoouma@gmail.com', 'English', '5454', 'scrypt:32768:8:1$y9q9CocW9hpH4gZj$17a9dd121c6fd21c642f9e78e3c59d5c0c6841db8d75a2278dec16b6f65c5110305ad59ab04456ecde7180d646300fee48bdbe5d3e4314a23fb885b26b92b52a', '2025-06-15 14:45:59');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `admins`
+--
+ALTER TABLE `admins`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `access_code` (`access_code`);
+
+--
+-- Indexes for table `classes`
+--
+ALTER TABLE `classes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `teacher_id` (`teacher_id`);
+
+--
+-- Indexes for table `marks`
+--
+ALTER TABLE `marks`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `idx_student_term` (`student_id`,`term`),
+  ADD KEY `teacher_id` (`teacher_id`);
+
+--
+-- Indexes for table `students`
+--
+ALTER TABLE `students`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `admission_number` (`admission_number`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `idx_class_id` (`class_id`);
+
+--
+-- Indexes for table `teachers`
+--
+ALTER TABLE `teachers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `access_code` (`access_code`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `admins`
+--
+ALTER TABLE `admins`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `classes`
+--
+ALTER TABLE `classes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `marks`
+--
+ALTER TABLE `marks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `students`
+--
+ALTER TABLE `students`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+
+--
+-- AUTO_INCREMENT for table `teachers`
+--
+ALTER TABLE `teachers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `classes`
+--
+ALTER TABLE `classes`
+  ADD CONSTRAINT `fk_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `students`
+--
+ALTER TABLE `students`
+  ADD CONSTRAINT `fk_student_class` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

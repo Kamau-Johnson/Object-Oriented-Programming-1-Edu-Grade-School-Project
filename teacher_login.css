@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background-image: url('teacher login.webp');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #333;
+}
+
+.container {
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  max-width: 340px;
+  width: 90%;
+  text-align: center;
+  font-weight: 500;
+  margin: 10px 0;
+  position: relative;
+  left: -200px;
+}
+
+h1 {
+  font-size: 22px;
+  margin-bottom: 4px;
+  font-weight: 700;
+  color: #2c3e50;
+  letter-spacing: 1px;
+}
+
+p.subtitle {
+  font-size: 12px;
+  margin-bottom: 12px;
+  font-style: italic;
+  color: #7f8c8d;
+  font-weight: 400;
+}
+
+h2 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #34495e;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+label {
+  display: block;
+  margin: 8px 0 4px;
+  font-size: 13px;
+  text-align: left;
+  color: #34495e;
+  font-weight: 600;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1.6px solid #bdc3c7;
+  border-radius: 5px;
+  font-size: 13px;
+  transition: border-color 0.3s ease;
+  font-weight: 400;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  border-color: #2980b9;
+  outline: none;
+  box-shadow: 0 0 6px rgba(41, 128, 185, 0.35);
+}
+
+button[type="submit"] {
+  margin-top: 12px;
+  width: 100%;
+  padding: 8px 0;
+  font-size: 14px;
+  border: none;
+  border-radius: 7px;
+  background-color: #2980b9;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 3px 10px rgba(41, 128, 185, 0.4);
+}
+
+button[type="submit"]:hover {
+  background-color: #1c5980;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 8px 10px;
+  background-color: #2980b9;
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.back-button:hover {
+  background-color: #1c5980;
+}
+
+.back-link {
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  color: #337ab7;
+  text-decoration: none;
+}
+
+.flash-messages {
+  margin-bottom: 15px;
+}
+
+.flash {
+  padding: 12px 20px;
+  border-radius: 5px;
+  margin: 10px 0;
+  font-weight: bold;
+  text-align: center;
+}
+
+.flash.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.flash.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.flash.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}

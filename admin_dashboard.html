@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>EduGrade+ Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo-container">
+            <i class="fas fa-graduation-cap logo-icon"></i>
+            <div class="logo-text">
+                <h1>EDUGRADE +</h1>
+                <p>Track. Grade. Grow.</p>
+            </div>
+        </div>
+        <nav class="nav-container">
+            <a href="#" class="nav-item active" id="dashboardNav">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <div class="nav-section">MANAGEMENT</div>
+            <a href="#" class="nav-item" id="studentsNav" data-modal="students-list">
+                <i class="fas fa-users"></i>
+                Students
+            </a>
+            <a href="#" class="nav-item" id="teachersNav" data-modal="teachers-list">
+                <i class="fas fa-chalkboard-teacher"></i>
+                Teachers
+            </a>
+            <a href="#" class="nav-item" id="classesNav" data-modal="classes-list">
+                <i class="fas fa-school"></i>
+                Classes
+            </a>
+             <a href="#" class="nav-item" data-modal="reports-list">
+                <i class="fas fa-chart-bar"></i>
+                Reports
+            </a>
+        </nav>
+        <div class="user-container">
+            <i class="fas fa-user-shield"></i>
+            <span>User: Admin</span>
+        </div>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="main-content">
+        <div style="height: 50px;"></div>
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <a href="{{ url_for('admin_logout') }}" class="back-button">← Logout</a>
+        </div>
+        <div class="welcome-section">
+            <h1>Welcome Back, Admin!</h1>
+            <p>EduGrade: Your growth, our grade.</p>
+        </div>
+        <div class="stats-container">
+            <div class="stats-card stats-teachers">
+                <h3>TOTAL TEACHERS</h3>
+                <div class="number" id="totalTeachersCount">{{ total_teachers }}</div>
+                <p>Active Teachers</p>
+            </div>
+            <div class="stats-card stats-students">
+                <h3>TOTAL STUDENTS</h3>
+                <div class="number" id="totalStudentsCount">{{ total_students }}</div>
+                <p>Active Students</p>
+            </div>
+        </div>
+        <div class="actions-container">
+            <div class="action-card">
+                <h3>Add New Teacher</h3>
+                <p>Register a new teacher</p>
+                <div class="icon"><i class="fas fa-user-plus"></i></div>
+                <button class="action-button" data-modal="teacher">Add</button>
+            </div>
+            <div class="action-card">
+                <h3>Add New Student</h3>
+                <p>Add a new student</p>
+                <div class="icon"><i class="fas fa-user-graduate"></i></div>
+                <button class="action-button" data-modal="student">Add</button>
+            </div>
+            <div class="action-card">
+                <h3>View Reports</h3>
+                <p>Generate and view report</p>
+                <div class="icon"><i class="fas fa-eye"></i></div>
+                <button class="action-button" data-modal="reports-list">View</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="message-box" id="messageBox"></div>
+
+    <div class="modal" id="teacherModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Add New Teacher</h2>
+                <button class="modal-close" data-modal="teacher">×</button>
+            </div>
+            <form class="modal-form" id="teacherForm">
+                <div class="form-row">
+                    <div class="form-group"><label for="teacherFullName">Full Name *</label><input type="text" id="teacherFullName" name="fullName" required></div>
+                    <div class="form-group"><label for="teacherPhone">Phone Number</label><input type="tel" id="teacherPhone" name="phoneNumber"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label for="teacherEmail">Email *</label><input type="email" id="teacherEmail" name="email" required></div>
+                    <div class="form-group">
+                        <label for="teacherSubject">Subject *</label>
+                        <select id="teacherSubject" name="subject" required>
+                            <option value="">Select Subject</option><option value="English">English</option><option value="Kiswahili">Kiswahili</option><option value="Mathematics">Mathematics</option><option value="Integrated Science">Science</option><option value="Social Studies">Social Studies</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label for="teacherAccessCode">Access Code *</label><input type="text" id="teacherAccessCode" name="accessCode" required></div>
+                    <div class="form-group"><label for="teacherPassword">Password *</label><input type="password" id="teacherPassword" name="password" required></div>
+                </div>
+                <div class="form-actions"><button type="button" class="btn-cancel" data-modal="teacher">Cancel</button><button type="submit" class="btn-submit">Add Teacher</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="studentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-graduate"></i> Add New Student</h2>
+                <button class="modal-close" data-modal="student">×</button>
+            </div>
+            <form class="modal-form" id="studentForm">
+                <div class="form-row">
+                    <div class="form-group"><label for="studentFullName">Full Name *</label><input type="text" id="studentFullName" name="fullName" required></div>
+                    <div class="form-group"><label for="studentAdmissionNumber">Admission Number *</label><input type="text" id="studentAdmissionNumber" name="admissionNumber" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label for="studentAge">Age *</label><input type="number" id="studentAge" name="age" min="5" max="25" required></div>
+                    <div class="form-group">
+                        <label for="studentGrade">Grade *</label>
+                        <select id="studentGrade" name="grade" required>
+                            <option value="">Select Grade</option><option value="Grade 1 (Lower Primary)">Grade 1 (Lower Primary)</option><option value="Grade 2 (Lower Primary)">Grade 2 (Lower Primary)</option><option value="Grade 3 (Lower Primary)">Grade 3 (Lower Primary)</option><option value="Grade 4 (Upper Primary)">Grade 4 (Upper Primary)</option><option value="Grade 5 (Upper Primary)">Grade 5 (Upper Primary)</option><option value="Grade 6 (Upper Primary)">Grade 6 (Upper Primary)</option><option value="Grade 7 (JSS)">Grade 7 (JSS)</option><option value="Grade 8 (JSS)">Grade 8 (JSS)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="studentClass">Assign to Class</label>
+                        <select id="studentClass" name="classId">
+                            <option value="">Unassigned</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label for="studentPassword">Password *</label><input type="password" id="studentPassword" name="password" required></div>
+                </div>
+                <div class="form-actions"><button type="button" class="btn-cancel" data-modal="student">Cancel</button><button type="submit" class="btn-submit">Add Student</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="reports-listModal">
+        <div class="modal-content" style="max-width: 1200px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-chart-bar"></i> All Student Reports</h2>
+                <button class="modal-close" data-modal="reports-list">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-controls">
+                    <div class="search-container">
+                        <input type="text" id="reportSearch" placeholder="Search by student, term, grade..." class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Admission No.</th>
+                                <th>Term</th>
+                                <th>Overall Avg (%)</th>
+                                <th>Overall Grade</th>
+                                <th>Recorded By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="students-listModal">
+        <div class="modal-content">
+            <div class="modal-header"><h2><i class="fas fa-users"></i> Manage Students</h2><button class="modal-close" data-modal="students-list">×</button></div>
+            <div class="modal-body">
+                <div class="table-controls">
+                    <div class="search-container"><input type="text" id="studentSearch" placeholder="Search students..." class="search-input"><i class="fas fa-search search-icon"></i></div>
+                    <button class="btn-add-new" onclick="openAddStudentFromList()"><i class="fas fa-plus"></i> Add New Student</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th><th>Full Name</th><th>Admission No.</th><th>Grade</th>
+                                <th>Assigned Class</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="teachers-listModal">
+        <div class="modal-content">
+            <div class="modal-header"><h2><i class="fas fa-chalkboard-teacher"></i> Manage Teachers</h2><button class="modal-close" data-modal="teachers-list">×</button></div>
+            <div class="modal-body">
+                <div class="table-controls">
+                    <div class="search-container"><input type="text" id="teacherSearch" placeholder="Search teachers..." class="search-input"><i class="fas fa-search search-icon"></i></div>
+                    <button class="btn-add-new" onclick="openAddTeacherFromList()"><i class="fas fa-plus"></i> Add New Teacher</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead><tr><th>ID</th><th>Full Name</th><th>Phone Number</th><th>Email</th><th>Subject</th><th>Access Code</th><th>Actions</th></tr></thead>
+                        <tbody id="teachersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="classes-listModal">
+        <div class="modal-content">
+            <div class="modal-header"><h2><i class="fas fa-school"></i> Manage Classes</h2><button class="modal-close" data-modal="classes-list">×</button></div>
+            <div class="modal-body">
+                <div class="table-controls">
+                    <div class="search-container"><input type="text" id="classSearch" placeholder="Search classes..." class="search-input"><i class="fas fa-search search-icon"></i></div>
+                    <button class="btn-add-new" onclick="openAddClassModal()"><i class="fas fa-plus"></i> Add New Class</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead><tr><th>ID</th><th>Class Name</th><th>Grade Level</th><th>Assigned Teacher</th><th>Actions</th></tr></thead>
+                        <tbody id="classesTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="classFormModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header"><h2 id="classFormTitle"><i class="fas fa-plus-circle"></i> Add New Class</h2><button class="modal-close" data-modal="class-form">×</button></div>
+            <form class="modal-form" id="classForm">
+                <input type="hidden" id="classId" name="classId">
+                <div class="form-row">
+                    <div class="form-group"><label for="className">Class Name *</label><input type="text" id="className" name="className" placeholder="e.g., Grade 1 Blue" required></div>
+                    <div class="form-group">
+                        <label for="classGrade">Grade Level *</label>
+                        <select id="classGrade" name="grade" required>
+                           <option value="">Select Grade</option><option value="Grade 1 (Lower Primary)">Grade 1 (Lower Primary)</option><option value="Grade 2 (Lower Primary)">Grade 2 (Lower Primary)</option><option value="Grade 3 (Lower Primary)">Grade 3 (Lower Primary)</option><option value="Grade 4 (Upper Primary)">Grade 4 (Upper Primary)</option><option value="Grade 5 (Upper Primary)">Grade 5 (Upper Primary)</option><option value="Grade 6 (Upper Primary)">Grade 6 (Upper Primary)</option><option value="Grade 7 (JSS)">Grade 7 (JSS)</option><option value="Grade 8 (JSS)">Grade 8 (JSS)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                     <div class="form-group">
+                        <label for="classTeacher">Assign Teacher</label>
+                        <select id="classTeacher" name="teacherId"><option value="">No Teacher Assigned</option></select>
+                    </div>
+                    <div class="form-group"></div>
+                </div>
+                <div class="form-actions"><button type="button" class="btn-cancel" data-modal="class-form">Cancel</button><button type="submit" class="btn-submit" id="submitClassFormButton">Save Class</button></div>
+            </form>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const studentForm = document.getElementById('studentForm');
+    const teacherForm = document.getElementById('teacherForm');
+    const classForm = document.getElementById('classForm');
+    const studentsTableBody = document.getElementById('studentsTableBody');
+    const teachersTableBody = document.getElementById('teachersTableBody');
+    const classesTableBody = document.getElementById('classesTableBody');
+    const reportsTableBody = document.getElementById('reportsTableBody');
+    const messageBox = document.getElementById('messageBox');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const studentSearchInput = document.getElementById('studentSearch');
+    const teacherSearchInput = document.getElementById('teacherSearch');
+    const classSearchInput = document.getElementById('classSearch');
+    const reportSearchInput = document.getElementById('reportSearch');
+
+    function showMessageBox(message, type = 'success') {
+        messageBox.textContent = message;
+        messageBox.className = `message-box show ${type}`;
+        setTimeout(() => { messageBox.className = 'message-box'; }, 3000);
+    }
+    
+    function filterTable(inputElement, tableBody) {
+        const searchTerm = inputElement.value.toLowerCase();
+        const rows = tableBody.getElementsByTagName('tr');
+        for (const row of rows) {
+            row.style.display = row.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
+        }
+    }
+
+    function openModal(modal) {
+        if (!modal) return;
+        modalOverlay.style.display = 'block';
+        modal.style.display = 'block';
+        setTimeout(() => {
+            modal.classList.add('show');
+            modalOverlay.classList.add('show');
+        }, 10);
+    }
+
+    function closeModal(modal) {
+        return new Promise(resolve => {
+            if (!modal || !modal.classList.contains('show')) {
+                resolve();
+                return;
+            }
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                resolve();
+            }, 300);
+        });
+    }
+
+    async function showModal(targetModalId) {
+        const currentOpenModal = document.querySelector('.modal.show');
+        const targetModal = targetModalId ? document.getElementById(targetModalId) : null;
+
+        if (currentOpenModal && (!targetModal || currentOpenModal.id !== targetModal.id)) {
+            await closeModal(currentOpenModal);
+        }
+
+        if (!targetModal) {
+            if (modalOverlay.classList.contains('show')) {
+                modalOverlay.classList.remove('show');
+                setTimeout(() => {
+                    modalOverlay.style.display = 'none';
+                }, 300);
+            }
+            return;
+        }
+        
+        openModal(targetModal);
+    }
+    
+    document.querySelectorAll('.nav-item, .action-button').forEach(item => {
+        item.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const modalType = item.dataset.modal;
+            const targetModalId = modalType ? modalType + 'Modal' : null;
+
+            if (modalType === 'students-list') await fetchAndRenderStudents();
+            if (modalType === 'teachers-list') await fetchAndRenderTeachers();
+            if (modalType === 'classes-list') await fetchAndRenderClasses();
+            if (modalType === 'reports-list') await fetchAndRenderAdminReports();
+            if (modalType === 'student') await populateClassDropdownForStudentForm();
+            
+            await showModal(targetModalId);
+        });
+    });
+
+    document.querySelectorAll('.modal-close, .btn-cancel').forEach(button => {
+        button.addEventListener('click', async () => {
+            await showModal(null);
+        });
+    });
+
+    studentSearchInput.addEventListener('input', () => filterTable(studentSearchInput, studentsTableBody));
+    teacherSearchInput.addEventListener('input', () => filterTable(teacherSearchInput, teachersTableBody));
+    classSearchInput.addEventListener('input', () => filterTable(classSearchInput, classesTableBody));
+    reportSearchInput.addEventListener('input', () => filterTable(reportSearchInput, reportsTableBody));
+
+    async function submitForm(form, url, method, successCallback) {
+        const button = form.querySelector('.btn-submit');
+        button.disabled = true;
+        const formData = new URLSearchParams(new FormData(form)).toString();
+        const response = await fetch(url, { method, body: formData, headers: {'Content-Type': 'application/x-www-form-urlencoded'} });
+        const result = await response.json();
+        showMessageBox(result.message, result.success ? 'success' : 'error');
+        button.disabled = false;
+        if (result.success) {
+            await showModal(null);
+            form.reset();
+            if (successCallback) successCallback();
+        }
+    }
+
+    studentForm.addEventListener('submit', e => { e.preventDefault(); submitForm(studentForm, '/add_student', 'POST', () => { fetchAndRenderStudents(); updateDashboardCounts(); }); });
+    teacherForm.addEventListener('submit', e => { e.preventDefault(); submitForm(teacherForm, '/add_teacher', 'POST', () => { fetchAndRenderTeachers(); updateDashboardCounts(); }); });
+    classForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const classId = classForm.querySelector('#classId').value;
+        submitForm(classForm, classId ? `/update_class/${classId}` : '/add_class', classId ? 'PUT' : 'POST', fetchAndRenderClasses);
+    });
+
+    window.handleDelete = async (type, id) => {
+        if (!confirm(`Are you sure you want to delete this ${type}? This action cannot be undone.`)) return;
+        const url = `/delete_${type}/${id}`;
+        const response = await fetch(url, { method: 'DELETE' });
+        const result = await response.json();
+        showMessageBox(result.message, result.success ? 'success' : 'error');
+        if (result.success) {
+            if (type === 'student') { fetchAndRenderStudents(); updateDashboardCounts(); }
+            if (type === 'teacher') { fetchAndRenderTeachers(); updateDashboardCounts(); }
+            if (type === 'class') fetchAndRenderClasses();
+        }
+    };
+
+    window.editClass = async (id) => {
+        const response = await fetch(`/get_class/${id}`);
+        const result = await response.json();
+        if (result.success) {
+            const cls = result.class_data;
+            classForm.reset();
+            document.getElementById('classId').value = cls.id;
+            document.getElementById('className').value = cls.name;
+            document.getElementById('classGrade').value = cls.grade;
+            await populateTeacherDropdownForClassForm(cls.teacher_id);
+            await showModal('classFormModal');
+        } else {
+            showMessageBox(result.message, 'error');
+        }
+    };
+    
+    window.openAddStudentFromList = async () => {
+        studentForm.reset();
+        await populateClassDropdownForStudentForm();
+        await showModal('studentModal');
+    };
+
+    window.openAddTeacherFromList = async () => {
+        teacherForm.reset();
+        await showModal('teacherModal');
+    };
+
+    window.openAddClassModal = async () => {
+        classForm.reset();
+        document.getElementById('classId').value = '';
+        await populateTeacherDropdownForClassForm();
+        await showModal('classFormModal');
+    };
+
+    async function updateDashboardCounts() {
+        try {
+            const response = await fetch('/admin_dashboard_counts');
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('totalTeachersCount').textContent = data.total_teachers;
+                document.getElementById('totalStudentsCount').textContent = data.total_students;
+            }
+        } catch (error) {
+            console.error('Failed to update dashboard counts:', error);
+        }
+    }
+
+    async function fetchAndRenderStudents() {
+        try {
+            const response = await fetch('/get_students');
+            const result = await response.json();
+            studentsTableBody.innerHTML = '';
+            if (result.success && result.students.length > 0) {
+                result.students.forEach(s => {
+                    const row = studentsTableBody.insertRow();
+                    row.innerHTML = `<td>${s.id}</td><td>${s.full_name}</td><td>${s.admission_number}</td><td>${s.grade}</td><td>${s.class_name || 'N/A'}</td><td><button class="btn-delete" onclick="handleDelete('student', ${s.id})">Delete</button></td>`;
+                });
+            } else { studentsTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No students found.</td></tr>`; }
+        } catch (error) { console.error('Fetch error for students:', error); }
+    }
+
+    async function fetchAndRenderTeachers() {
+        try {
+            const response = await fetch('/get_teachers');
+            const result = await response.json();
+            teachersTableBody.innerHTML = '';
+            if (result.success && result.teachers.length > 0) {
+                result.teachers.forEach(t => {
+                    const row = teachersTableBody.insertRow();
+                    row.innerHTML = `<td>${t.id}</td><td>${t.full_name}</td><td>${t.phone_number || 'N/A'}</td><td>${t.email}</td><td>${t.subject}</td><td>${t.access_code}</td><td><button class="btn-delete" onclick="handleDelete('teacher', ${t.id})">Delete</button></td>`;
+                });
+            } else { teachersTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No teachers found.</td></tr>`; }
+        } catch (error) { console.error('Fetch error for teachers:', error); }
+    }
+
+    async function fetchAndRenderClasses() {
+        try {
+            const response = await fetch('/get_classes');
+            const result = await response.json();
+            classesTableBody.innerHTML = '';
+            if (result.success && result.classes.length > 0) {
+                result.classes.forEach(c => {
+                    const row = classesTableBody.insertRow();
+                    row.innerHTML = `<td>${c.id}</td><td>${c.name}</td><td>${c.grade}</td><td>${c.teacher_name || 'N/A'}</td><td><button class="btn-edit" onclick="editClass(${c.id})">Edit</button><button class="btn-delete" onclick="handleDelete('class', ${c.id})">Delete</button></td>`;
+                });
+            } else { classesTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No classes found.</td></tr>`; }
+        } catch (error) { console.error('Fetch error for classes:', error); }
+    }
+
+    async function populateClassDropdownForStudentForm() {
+        try {
+            const studentClassSelect = document.getElementById('studentClass');
+            const response = await fetch('/get_classes');
+            const result = await response.json();
+            studentClassSelect.innerHTML = '<option value="">Unassigned</option>';
+            if (result.success && result.classes) {
+                result.classes.forEach(cls => { studentClassSelect.innerHTML += `<option value="${cls.id}">${cls.name} (${cls.grade})</option>`; });
+            }
+        } catch (error) { console.error('Failed to populate class dropdown:', error); }
+    }
+
+    async function populateTeacherDropdownForClassForm(selectedId = null) {
+        try {
+            const classTeacherSelect = document.getElementById('classTeacher');
+            const response = await fetch('/get_teachers');
+            const result = await response.json();
+            classTeacherSelect.innerHTML = '<option value="">No Teacher Assigned</option>';
+            if (result.success && result.teachers) {
+                result.teachers.forEach(teacher => {
+                    const selected = teacher.id === selectedId ? 'selected' : '';
+                    classTeacherSelect.innerHTML += `<option value="${teacher.id}" ${selected}>${teacher.full_name} (${teacher.subject})</option>`;
+                });
+            }
+        } catch (error) { console.error('Failed to populate teacher dropdown:', error); }
+    }
+
+    async function fetchAndRenderAdminReports() {
+        reportsTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Loading reports...</td></tr>`;
+        try {
+            const response = await fetch('/admin/all_reports');
+            const result = await response.json();
+            reportsTableBody.innerHTML = '';
+            if (result.success && result.reports.length > 0) {
+                result.reports.forEach(r => {
+                    const row = reportsTableBody.insertRow();
+                    row.innerHTML = `<td>${r.student_name}</td><td>${r.admission_number}</td><td>${r.term}</td><td>${r.overall_average || 'N/A'}%</td><td>${r.overall_grade || 'N/A'}</td><td>${r.teacher_name || 'N/A'}</td><td><button class="btn-pdf" onclick="downloadAdminReport(${r.mark_id}, this)"><i class="fas fa-file-pdf"></i> Download</button></td>`;
+                });
+            } else {
+                reportsTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No reports found in the system.</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Fetch error for reports:', error);
+            reportsTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: red;">Failed to load reports.</td></tr>`;
+        }
+    }
+
+    function renderReportCardHTML(data) {
+        let subjectRows = '';
+        for (const subjectKey in data.marks_details) {
+            const subject = data.marks_details[subjectKey];
+            subjectRows += `<tr><td>${subject.name ?? 'N/A'}</td><td>${subject.assessments.assignment1 ?? '-'}</td><td>${subject.assessments.cat1 ?? '-'}</td><td>${subject.assessments.cat2 ?? '-'}</td><td>${subject.assessments.final_exam ?? '-'}</td><td><b>${subject.total ?? '-'}</b></td><td>${subject.average ?? '-'}%</td><td>${subject.grade ?? '-'}</td></tr>`;
+        }
+        return `<div class="report-card-printable"><style>.report-card-printable{background:#fff;border:1px solid #ccc;padding:25px;max-width:800px;margin:0 auto;font-family:'Times New Roman',Times,serif;color:#000}.rcp-header{display:flex;align-items:center;justify-content:center;text-align:center;border-bottom:2px solid #000;padding-bottom:15px;margin-bottom:20px}.rcp-header h1{margin:0;font-size:24px;font-weight:700}.rcp-header p{margin:0;font-size:16px}.rcp-details{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;font-size:14px}.rcp-details .item{padding:5px;border:1px solid #eee}.rcp-marks table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px}.rcp-marks th,.rcp-marks td{border:1px solid #000;padding:8px;text-align:center}.rcp-marks th{background-color:#f2f2f2;font-weight:700}.rcp-summary{margin-top:20px;border-top:2px solid #000;padding-top:15px}.rcp-summary h3{text-align:center;margin-bottom:15px;font-weight:700}.rcp-summary-grid{display:grid;grid-template-columns:1fr 1fr 2fr;gap:15px}.rcp-summary .box{border:1px solid #000;padding:10px;text-align:center}.rcp-summary .box .value{font-size:18px;font-weight:700;margin-bottom:5px}.rcp-summary .box .label{font-size:12px}.rcp-summary .box.remark .value{font-size:14px;font-style:italic;min-height:40px}.rcp-footer{margin-top:40px;padding-top:20px;border-top:1px solid #999;display:flex;justify-content:space-between;align-items:flex-end;font-size:12px}</style><header class="rcp-header"><div><h1>EDUGRADE+ REPORT CARD</h1><p>End of ${data.term}, ${new Date().getFullYear()}</p></div></header><section class="rcp-details"><div class="item"><strong>Student:</strong> ${data.full_name}</div><div class="item"><strong>Adm No:</strong> ${data.admission_number}</div><div class="item"><strong>Grade:</strong> ${data.grade}</div><div class="item"><strong>Class:</strong> ${data.class_name || 'N/A'}</div></section><section class="rcp-marks"><table><thead><tr><th>Subject</th><th>Asgn 1</th><th>CAT 1</th><th>CAT 2</th><th>Exam</th><th>Total</th><th>Avg(%)</th><th>Grade</th></tr></thead><tbody>${subjectRows}</tbody></table></section><section class="rcp-summary"><h3>Overall Performance Summary</h3><div class="rcp-summary-grid"><div class="box"><div class="value">${data.overall_average}%</div><div class="label">Overall Average</div></div><div class="box"><div class="value">${data.overall_grade}</div><div class="label">Overall Grade</div></div><div class="box remark"><div class="value">${data.overall_remark}</div><div class="label">Teacher's Remark</div></div></div></section><footer class="rcp-footer"><div><p>_________________</p><p><strong>Teacher:</strong> ${data.teacher_name || 'N/A'}</p></div><div><p>_________________</p><p><strong>Principal</strong></p></div><div><p><strong>Issued:</strong> ${data.report_generated_on}</p></div></footer></div>`;
+    }
+
+    window.downloadAdminReport = async (markId, button) => {
+        const originalHtml = button.innerHTML;
+        button.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+        button.disabled = true;
+        try {
+            const response = await fetch(`/admin/get_single_report_data/${markId}`);
+            if (!response.ok) throw new Error('Failed to fetch report data.');
+            
+            const result = await response.json();
+            if (result.success) {
+                const reportHTML = renderReportCardHTML(result.data);
+                
+                const opt = {
+                    margin: 0.5,
+                    filename: `Report_Card_${result.data.full_name.replace(/ /g, '_')}_${result.data.term}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+                
+                await html2pdf().set(opt).from(reportHTML).save();
+            } else {
+                showMessageBox(result.message, 'error');
+            }
+        } catch (error) {
+            showMessageBox('Error generating PDF.', 'error');
+        } finally {
+            button.innerHTML = originalHtml;
+            button.disabled = false;
+        }
+    };
+});
+</script>
+</body>
+</html>

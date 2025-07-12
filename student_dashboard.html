@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGrade Student Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='student_dashboard.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <i class="logo-icon fas fa-graduation-cap"></i>
+          <div class="logo-text"><h1>EDUGRADE +</h1><p>Track. Grade. Grow.</p></div>
+        </div>
+      </div>
+      <div class="sidebar-content">
+        <div class="nav-items">
+          <div class="nav-item active" onclick="showSection('dashboard')" data-section="dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
+          <div class="nav-item" onclick="showSection('grades')" data-section="grades"><i class="fas fa-poll"></i><span>My Grades</span></div>
+          <div class="nav-item" onclick="showSection('report_card')" data-section="report_card"><i class="fas fa-file-alt"></i><span>My Report Card</span></div>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <div class="user-info"><i class="fas fa-user-graduate"></i><span>User: {{ student_name }}</span></div>
+        <div class="logout-link"><a href="{{ url_for('student_logout') }}"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div id="dashboard" class="content-section active">
+        <div class="header-section">
+          <div class="welcome-card">
+            <div class="welcome-content">
+              <h1>Welcome, {{ student_name }}!</h1>
+              <p>Here is a summary of your academic progress.</p>
+            </div>
+          </div>
+        </div>
+        <div class="content-grid">
+          <div class="card subjects-card">
+            <h2>SUBJECTS</h2>
+            <div class="number-box"><span class="number">{{ num_subjects }}</span></div>
+            <p>Active subjects this term</p>
+            <button class="get-started-btn" onclick="showSection('grades')">View My Grades</button>
+          </div>
+          <div class="card report-card-link">
+            <h2>View Report Card</h2>
+            <div class="icon-container"><i class="fas fa-eye"></i></div>
+            <p>Generate and View Your Report</p>
+            <button class="get-started-btn" onclick="showSection('report_card')">Get Started</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="grades" class="content-section">
+        <div class="data-management-section">
+          <div class="modal-header">
+            <h2><i class="fas fa-poll"></i> My Termly Grades</h2>
+            <button class="btn-add-new" onclick="fetchMyGrades()"><i class="fas fa-sync-alt"></i> Refresh</button>
+          </div>
+          <div id="gradesContainer" class="grades-container"></div>
+        </div>
+      </div>
+
+      <div id="report_card" class="content-section">
+        <div class="data-management-section">
+          <div class="modal-header">
+            <h2><i class="fas fa-file-alt"></i> My Report Card</h2>
+          </div>
+          <div class="report-controls">
+            <div class="form-group">
+              <label for="reportTermSelector">Select Term:</label>
+              <select id="reportTermSelector" class="search-input">
+                <option value="Term 1" selected>Term 1</option>
+                <option value="Term 2">Term 2</option>
+                <option value="Term 3">Term 3</option>
+              </select>
+            </div>
+            <div class="report-action-buttons">
+              <button id="generateReportBtn" class="btn-submit"><i class="fas fa-cogs"></i> Generate Report</button>
+              <button id="downloadPdfBtn" class="btn-pdf" style="display: none;"><i class="fas fa-file-pdf"></i> Download as PDF</button>
+            </div>
+          </div>
+          <div id="reportCardContainer" class="report-card-container">
+            <div class="placeholder-text">
+              <i class="fas fa-file-invoice"></i>
+              <p>Please select a term to generate your report card.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function showSection(sectionId) {
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      document.getElementById(sectionId)?.classList.add('active');
+      document.querySelectorAll('.sidebar .nav-item').forEach(item => item.classList.remove('active'));
+      document.querySelector(`.nav-item[data-section="${sectionId}"]`)?.classList.add('active');
+
+      if (sectionId === 'grades') {
+        fetchMyGrades();
+      }
+      if (sectionId === 'report_card') {
+        document.getElementById('downloadPdfBtn').style.display = 'none';
+        document.getElementById('reportCardContainer').innerHTML = `<div class="placeholder-text"><i class="fas fa-file-invoice"></i><p>Please select a term to generate your report card.</p></div>`;
+      }
+    }
+
+    async function fetchMyGrades() {
+      const container = document.getElementById('gradesContainer');
+      container.innerHTML = `<div class="placeholder-text"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Fetching your grades...</p></div>`;
+
+      try {
+        const response = await fetch('/student/my_grades');
+        const result = await response.json();
+
+        if (result.success && result.grades.length > 0) {
+          container.innerHTML = '';
+          result.grades.forEach(termData => {
+            const termAccordion = document.createElement('details');
+            termAccordion.className = 'term-accordion';
+
+            let subjectRows = '';
+            if(termData.marks_data && Object.keys(termData.marks_data).length > 0) {
+              for (const subjectKey in termData.marks_data) {
+                const subject = termData.marks_data[subjectKey];
+                subjectRows += `
+                  <tr>
+                    <td>${subject.name || 'N/A'}</td>
+                    <td>${subject.assessments.assignment1 ?? '-'}</td>
+                    <td>${subject.assessments.cat1 ?? '-'}</td>
+                    <td>${subject.assessments.cat2 ?? '-'}</td>
+                    <td>${subject.assessments.final_exam ?? '-'}</td>
+                    <td><b>${subject.total || '-'}</b></td>
+                    <td>${subject.average || '-'}%</td>
+                    <td>${subject.grade || '-'}</td>
+                  </tr>`;
+              }
+            } else {
+              subjectRows = '<tr><td colspan="8" style="text-align:center;">No subject details available for this term.</td></tr>';
+            }
+
+            termAccordion.innerHTML = `
+              <summary>
+                <div class="term-summary-title">
+                  <i class="fas fa-chevron-right"></i>
+                  <h3>${termData.term}</h3>
+                </div>
+                <div class="term-summary-stats">
+                  <span>Avg: <b>${termData.overall_average ?? 'N/A'}%</b></span>
+                  <span>Grade: <b class="grade-pill grade-${(termData.overall_grade || 'na').toLowerCase()}">${termData.overall_grade ?? 'N/A'}</b></span>
+                  <span>Remark: <i>${termData.overall_remark ?? 'N/A'}</i></span>
+                </div>
+              </summary>
+              <div class="term-details">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Subject</th><th>Asgn 1</th><th>CAT 1</th><th>CAT 2</th><th>Exam</th><th>Total</th><th>Avg(%)</th><th>Grade</th>
+                    </tr>
+                  </thead>
+                  <tbody>${subjectRows}</tbody>
+                </table>
+              </div>`;
+            container.appendChild(termAccordion);
+          });
+        } else if (result.success) {
+          container.innerHTML = `<div class="placeholder-text"><i class="fas fa-box-open"></i><p>No grades have been entered for you yet.</p></div>`;
+        } else {
+          container.innerHTML = `<div class="placeholder-text error"><i class="fas fa-exclamation-triangle"></i><p>${result.message || 'Failed to load grades.'}</p></div>`;
+        }
+      } catch (error) {
+        container.innerHTML = `<div class="placeholder-text error"><i class="fas fa-exclamation-triangle"></i><p>Could not load your grades. Please try again later.</p></div>`;
+      }
+    }
+
+    const generateReportBtn = document.getElementById('generateReportBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+    const reportCardContainer = document.getElementById('reportCardContainer');
+    const reportTermSelector = document.getElementById('reportTermSelector');
+
+    generateReportBtn.addEventListener('click', async () => {
+      const term = reportTermSelector.value;
+      generateReportBtn.disabled = true;
+      generateReportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+      reportCardContainer.innerHTML = `<div class="placeholder-text"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Fetching report data...</p></div>`;
+
+      try {
+        const response = await fetch(`/student/my_report_card?term=${encodeURIComponent(term)}`);
+        const result = await response.json();
+
+        if (result.success) {
+          renderReportCard(result.data);
+          downloadPdfBtn.style.display = 'inline-block';
+        } else {
+          reportCardContainer.innerHTML = `<div class="placeholder-text error"><i class="fas fa-exclamation-triangle"></i><p>${result.message}</p></div>`;
+          downloadPdfBtn.style.display = 'none';
+        }
+      } catch (error) {
+        reportCardContainer.innerHTML = `<div class="placeholder-text error"><i class="fas fa-exclamation-triangle"></i><p>An unexpected error occurred.</p></div>`;
+        downloadPdfBtn.style.display = 'none';
+      } finally {
+        generateReportBtn.disabled = false;
+        generateReportBtn.innerHTML = '<i class="fas fa-cogs"></i> Generate Report';
+      }
+    });
+
+    function renderReportCard(data) {
+      let subjectRows = '';
+      for (const subjectKey in data.marks_details) {
+        const subject = data.marks_details[subjectKey];
+        subjectRows += `
+          <tr>
+            <td>${subject.name ?? 'N/A'}</td>
+            <td>${subject.assessments.assignment1 ?? '-'}</td>
+            <td>${subject.assessments.cat1 ?? '-'}</td>
+            <td>${subject.assessments.cat2 ?? '-'}</td>
+            <td>${subject.assessments.final_exam ?? '-'}</td>
+            <td><b>${subject.total ?? '-'}</b></td>
+            <td>${subject.average ?? '-'}%</td>
+            <td>${subject.grade ?? '-'}</td>
+          </tr>`;
+      }
+
+      const reportHTML = `
+        <div id="printableReport" class="report-card">
+          <header class="report-header">
+            <i class="fas fa-graduation-cap logo"></i>
+            <div>
+              <h1>EDUGRADE+ REPORT CARD</h1>
+              <p>End of ${data.term}, ${new Date().getFullYear()}</p>
+            </div>
+          </header>
+          <section class="student-details">
+            <div class="detail-item"><strong>Student Name:</strong> ${data.full_name}</div>
+            <div class="detail-item"><strong>Admission No:</strong> ${data.admission_number}</div>
+            <div class="detail-item"><strong>Grade:</strong> ${data.grade}</div>
+            <div class="detail-item"><strong>Class:</strong> ${data.class_name || 'N/A'}</div>
+          </section>
+          <section class="marks-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Asgn 1 (10)</th>
+                  <th>CAT 1 (15)</th>
+                  <th>CAT 2 (15)</th>
+                  <th>Exam (100)</th>
+                  <th>Total</th>
+                  <th>Avg (%)</th>
+                  <th>Grade</th>
+                </tr>
+              </thead>
+              <tbody>${subjectRows}</tbody>
+            </table>
+          </section>
+          <section class="summary-section">
+            <h3>Overall Performance Summary</h3>
+            <div class="summary-grid">
+              <div class="summary-box">
+                <div class="value">${data.overall_average}%</div>
+                <div class="label">Overall Average</div>
+              </div>
+              <div class="summary-box">
+                <div class="value grade-${(data.overall_grade || 'na').toLowerCase()}">${data.overall_grade}</div>
+                <div class="label">Overall Grade</div>
+              </div>
+              <div class="summary-box remark">
+                <div class="value">${data.overall_remark}</div>
+                <div class="label">Class Teacher's Remark</div>
+              </div>
+            </div>
+          </section>
+          <footer class="report-footer">
+            <div class="signature">
+              <p>_________________________</p>
+              <p><strong>Class Teacher:</strong> ${data.teacher_name || 'N/A'}</p>
+            </div>
+            <div class="signature">
+              <p>_________________________</p>
+              <p><strong>Principal's Signature</strong></p>
+            </div>
+            <div class="date-stamp">
+              <p><strong>Date Issued:</strong> ${data.report_generated_on}</p>
+              <div class="stamp">SCHOOL STAMP</div>
+            </div>
+          </footer>
+        </div>`;
+      reportCardContainer.innerHTML = reportHTML;
+    }
+
+    downloadPdfBtn.addEventListener('click', () => {
+      const reportElement = document.getElementById('printableReport');
+      const studentName = "{{ student_name }}";
+      const term = reportTermSelector.value;
+
+      const opt = {
+        margin: 0.5,
+        filename: `Report_Card_${studentName.replace(/ /g, '_')}_${term}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(reportElement).save();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => { 
+      showSection('dashboard');
+    });
+  </script>
+</body>
+</html>
