@@ -7,7 +7,7 @@ EduGrade+ is a web-based school management system for managing students, teacher
 
 ![EduGrade+ Screenshot 1](Screenshot%201.png)
 ![EduGrade+ Screenshot 2](Screenshot%202.png)
-![EduGrade+ Screenshot 3](Screenshot%202.png)
+![EduGrade+ Screenshot 3](Screenshot%203.png)
 
 ## How It Works
 
