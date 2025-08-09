@@ -3,10 +3,18 @@
 
 EduGrade+ is a web-based school management system for managing students, teachers, grades, and administrative tasks in one platform. It is designed for simplicity, efficiency, and accessibility across devices.
 
+---
 ## Project Overview
+The above is the Students login page that incorporates admin access & the teachers access.For better security there is a custom security code for a specific admin or teacher to use eaxmple i used for admin to be (0464) and for a teacher (123) and all this can only be set by the admin only.
 
 ![EduGrade+ Screenshot 1](Screenshot%201.png)
+
+
+Below is a teacher's login page.
 ![EduGrade+ Screenshot 2](Screenshot%202.png)
+
+
+Below is a dashboard for teacher's where all the magic happens for teachers entry of marks to report generation.
 ![EduGrade+ Screenshot 3](Screenshot%203.png)
 
 ## How It Works
